@@ -1,0 +1,6 @@
+Vivaan ID: 1, Domain: adaptivepay.com, Salary: 640000.00
+
+Attendance Records: 0
+
+Leave Requests: 1
+- 2026-03-11 to 2026-03-13 | Sick Leave | Status: Pending

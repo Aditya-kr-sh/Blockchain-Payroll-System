@@ -1,0 +1,3 @@
+Found 2 records for 2026-03
+(2, 'Anika Joshi', Decimal('499166.67'))
+(3, 'Vivaan Patel', Decimal('441500.00'))
