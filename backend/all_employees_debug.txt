@@ -1,8 +1,0 @@
-TOTAL EMPLOYEES IN DATABASE: 6
-
-- Vivaan Patel | Status: Active | Domain: adaptivepay.com | Joined: 2026-03-11
-- Anika Joshi | Status: Active | Domain: adaptivepay.com | Joined: 2026-03-11
-- Arjun Reddy | Status: Active | Domain: adaptivepay.com | Joined: 2021-06-01
-- Diya Malhotra | Status: Active | Domain: adaptivepay.com | Joined: 2023-01-20
-- Krishna Iyer | Status: Active | Domain: adaptivepay.com | Joined: 2023-05-11
-- Mohan | Status: Active | Domain: amazon.com | Joined: 2026-03-11

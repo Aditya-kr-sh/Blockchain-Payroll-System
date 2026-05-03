@@ -1,9 +1,0 @@
-Total Employees: 6
-- Vivaan Patel: 2026-03-11
-- Anika Joshi: 2026-03-11
-- Arjun Reddy: 2021-06-01
-- Diya Malhotra: 2023-01-20
-- Krishna Iyer: 2023-05-11
-- Mohan: 2026-03-11
-
-Employees joined before 2026-03-01: 3

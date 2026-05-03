@@ -1,9 +1,0 @@
-Vivaan ID: 1
-Attendance:
-{'attendance_id': 16, 'employee_id': 1, 'date': datetime.date(2026, 3, 9), 'status': 'Present', 'org_domain': 'adaptivepay.com'}
-{'attendance_id': 1, 'employee_id': 1, 'date': datetime.date(2026, 3, 10), 'status': 'Absent', 'org_domain': 'adaptivepay.com'}
-{'attendance_id': 21, 'employee_id': 1, 'date': datetime.date(2026, 3, 11), 'status': 'Absent', 'org_domain': 'adaptivepay.com'}
-{'attendance_id': 46, 'employee_id': 1, 'date': datetime.date(2026, 3, 13), 'status': 'Present', 'org_domain': 'adaptivepay.com'}
-
-Payroll:
-{'payroll_id': 3, 'employee_id': 1, 'month_year': '2026-03', 'base_salary': Decimal('640000.00'), 'overtime_pay': Decimal('5000.00'), 'bonus': Decimal('2000.00'), 'leave_deduction': Decimal('42666.67'), 'tax_deduction': Decimal('162833.33'), 'net_salary': Decimal('441500.00'), 'status': 'Generated', 'generated_at': datetime.datetime(2026, 3, 11, 22, 37, 11), 'org_domain': 'adaptivepay.com'}
