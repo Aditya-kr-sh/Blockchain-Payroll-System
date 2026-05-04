@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SunIcon, MoonIcon, CheckCircleIcon, ShieldCheckIcon, UserGroupIcon } from '@heroicons/react/24/solid';
+import { SunIcon, MoonIcon, CheckCircleIcon, ShieldCheckIcon, UserGroupIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/solid';
 import api from '../services/api';
 
 const Login = ({ onAdminLogin, onEmployeeLogin }) => {
@@ -8,6 +8,7 @@ const Login = ({ onAdminLogin, onEmployeeLogin }) => {
   const [name, setName] = useState(''); // for admin register
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,13 +61,27 @@ const Login = ({ onAdminLogin, onEmployeeLogin }) => {
         
         if (response.status === 200) {
           const user = response.data.user;
+          const isManagerRole = ['Admin', 'HR', 'Manager'].includes(user.role);
+          
+          // Strict Role Check
+          if (loginType === 'admin' && !isManagerRole) {
+            setError('Access Denied: This portal is for Management & HR only.');
+            setIsLoading(false);
+            return;
+          }
+          if (loginType === 'employee' && isManagerRole) {
+            setError('Access Denied: Please use the Management & HR portal.');
+            setIsLoading(false);
+            return;
+          }
+
           localStorage.setItem('token', response.data.access_token);
           localStorage.setItem('orgDomain', user.org_domain);
           localStorage.setItem('userId', user.id);
           localStorage.setItem('userRole', user.role);
           localStorage.setItem('userName', user.email.split('@')[0]);
           
-          if (user.role === 'Admin' || user.role === 'HR' || user.role === 'Manager') {
+          if (isManagerRole) {
              localStorage.setItem('isAdmin', 'true');
              localStorage.removeItem('isEmployee');
              onAdminLogin();
@@ -202,7 +217,7 @@ const Login = ({ onAdminLogin, onEmployeeLogin }) => {
                 } cursor-pointer`}
               >
                 <ShieldCheckIcon className="w-5 h-5" />
-                Administrator
+                Management & HR
               </button>
               <button
                 type="button"
@@ -239,7 +254,7 @@ const Login = ({ onAdminLogin, onEmployeeLogin }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-gray-900 dark:text-white font-medium focus:bg-white dark:focus:bg-black focus:ring-4 focus:ring-hr-coral/10 focus:border-hr-coral outline-none transition-all cursor-text"
-                  placeholder={loginType === 'admin' ? "admin@adaptivepay.com" : "employee@adaptivepay.com"}
+                  placeholder={loginType === 'admin' ? "manager/hr/admin@company.com" : "employee@company.com"}
                   required
                 />
               </div>
@@ -248,14 +263,23 @@ const Login = ({ onAdminLogin, onEmployeeLogin }) => {
                 <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 px-1">
                   {loginType === 'admin' ? 'Security Password' : 'Employee ID PIN'}
                 </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-gray-900 dark:text-white font-medium focus:bg-white dark:focus:bg-black focus:ring-4 focus:ring-hr-coral/10 focus:border-hr-coral outline-none transition-all cursor-text"
-                  placeholder="••••••••"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-4 text-gray-900 dark:text-white font-medium focus:bg-white dark:focus:bg-black focus:ring-4 focus:ring-hr-coral/10 focus:border-hr-coral outline-none transition-all cursor-text pr-14"
+                    placeholder="••••••••"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-gray-400 hover:text-hr-coral transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
 
               {error && (

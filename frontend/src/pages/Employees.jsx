@@ -23,7 +23,7 @@ const Employees = () => {
     const fetchEmployees = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await api.get('/employees', {
+            const res = await api.get('/employees/', {
                 params: { search: searchQuery, department: selectedDept }
             });
             setEmployees(res.data);
@@ -85,7 +85,7 @@ const Employees = () => {
             if (isEditing) {
                 await api.put(`/employees/${currentId}`, formData);
             } else {
-                await api.post('/employees', formData);
+                await api.post('/employees/', formData);
             }
             setShowModal(false);
             fetchEmployees();

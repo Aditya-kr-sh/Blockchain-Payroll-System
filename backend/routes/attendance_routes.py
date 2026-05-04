@@ -1,11 +1,14 @@
 from flask import Blueprint, request, jsonify
 from models.db import get_db_connection
-from utils.auth_utils import get_request_domain
+from models.db import get_db_connection
+from utils.auth_utils import get_request_domain, role_required
+from flask_jwt_extended import get_jwt
 import mysql.connector
 
 attendance_bp = Blueprint('attendance_bp', __name__)
 
-@attendance_bp.route('/', methods=['GET'])
+@attendance_bp.route('', methods=['GET'], strict_slashes=False)
+@role_required(['Manager', 'HR', 'Admin'])
 def get_all_attendance():
     domain = get_request_domain()
     if not domain:
@@ -60,6 +63,7 @@ def mark_attendance():
         conn.close()
 
 @attendance_bp.route('/bulk', methods=['POST'])
+@role_required(['Manager', 'HR', 'Admin'])
 def mark_bulk_attendance():
     domain = get_request_domain()
     if not domain:
@@ -98,6 +102,7 @@ def mark_bulk_attendance():
         conn.close()
 
 @attendance_bp.route('/summary', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin'])
 def get_attendance_summary():
     domain = get_request_domain()
     if not domain:
@@ -131,11 +136,16 @@ def get_attendance_summary():
         conn.close()
 
 @attendance_bp.route('/<int:employee_id>', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin', 'Employee'])
 def get_attendance_by_employee(employee_id):
     domain = get_request_domain()
     if not domain:
         return jsonify({"error": "Organization domain required"}), 400
         
+    claims = get_jwt()
+    if claims.get('role') == 'Employee' and claims.get('employee_id') != employee_id:
+        return jsonify({"error": "Unauthorized"}), 403
+
     conn = get_db_connection()
     try:
         cursor = conn.cursor(dictionary=True)

@@ -11,6 +11,7 @@ import mysql.connector
 payroll_bp = Blueprint('payroll_bp', __name__)
 
 @payroll_bp.route('/generate', methods=['POST'])
+@role_required(['HR', 'Admin'])
 def generate():
     domain = get_request_domain()
     if not domain:
@@ -33,15 +34,25 @@ def generate():
     return jsonify({"message": "Payroll generated successfully", "data": payroll_data}), 201
 
 @payroll_bp.route('/history', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin', 'Employee'])
 def history():
     domain = get_request_domain()
     if not domain:
         return jsonify({"error": "Organization domain required"}), 400
         
+    claims = get_jwt()
+    user_role = claims.get('role')
+    user_emp_id = claims.get('employee_id')
+
     conn = get_db_connection()
     try:
         cursor = conn.cursor(dictionary=True)
         emp_id = request.args.get('employee_id')
+
+        # Security: Employees can only see their own payroll history
+        if user_role == 'Employee':
+            emp_id = user_emp_id
+
         query = """
             SELECT p.*, e.name as employee_name, e.department
             FROM payroll p 

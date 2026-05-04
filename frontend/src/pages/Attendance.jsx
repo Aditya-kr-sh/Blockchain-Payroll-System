@@ -232,7 +232,7 @@ const Attendance = () => {
       {activeTab === 'records' && (
         <div className="glass-card p-6">
           <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-6">Attendance Records</h2>
-          <div className="overflow-x-auto">
+          <div className="mobile-table-wrapper">
             <table className="data-table">
               <thead>
                 <tr><th>ID</th><th>Employee</th><th>Date</th><th>Status</th></tr>
@@ -248,7 +248,7 @@ const Attendance = () => {
                 ))}
               </tbody>
             </table>
-            {records.length === 0 && <p className="text-center text-gray-400 py-8">No records found for this period.</p>}
+            {records.length === 0 && <p className="text-center text-gray-400 py-8 italic font-medium">No records found for this period.</p>}
           </div>
         </div>
       )}

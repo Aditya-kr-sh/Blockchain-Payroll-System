@@ -1,6 +1,8 @@
 from flask import Blueprint, request, jsonify
 from models.db import get_db_connection
-from utils.auth_utils import get_request_domain
+from models.db import get_db_connection
+from utils.auth_utils import get_request_domain, role_required
+from flask_jwt_extended import get_jwt
 import mysql.connector
 
 leaves_bp = Blueprint('leaves_bp', __name__)
@@ -17,15 +19,25 @@ def get_leave_types():
         conn.close()
 
 @leaves_bp.route('/requests', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin', 'Employee'])
 def get_leaves():
     domain = get_request_domain()
     if not domain:
         return jsonify({"error": "Organization domain required"}), 400
         
+    claims = get_jwt()
+    user_role = claims.get('role')
+    user_emp_id = claims.get('employee_id')
+
     conn = get_db_connection()
     try:
         cursor = conn.cursor(dictionary=True)
         emp_id = request.args.get('employee_id')
+        
+        # Security: Employees can only see their own requests
+        if user_role == 'Employee':
+            emp_id = user_emp_id
+
         status_filter = request.args.get('status')
         query = """
             SELECT l.*, e.name as employee_name, e.department, lt.name as leave_type
@@ -71,31 +83,82 @@ def request_leave():
         conn.close()
 
 @leaves_bp.route('/<int:req_id>/status', methods=['PUT'])
+@role_required(['Manager', 'HR', 'Admin'])
 def update_status(req_id):
-    domain = get_request_domain()
+    claims = get_jwt()
+    domain = claims.get('org_domain', get_request_domain())
+    user_role = claims.get('role')
+    
     if not domain:
         return jsonify({"error": "Organization domain required"}), 400
         
     data = request.json
-    status = data.get('status')
+    action = data.get('status') # 'Approved' or 'Rejected'
+    
     conn = get_db_connection()
     try:
-        cursor = conn.cursor()
+        cursor = conn.cursor(dictionary=True)
+        # 1. Fetch current status
+        cursor.execute("SELECT * FROM leave_requests WHERE request_id=%s AND org_domain=%s", (req_id, domain))
+        leave_req = cursor.fetchone()
+        
+        if not leave_req:
+            return jsonify({"error": "Leave request not found"}), 404
+            
+        current_status = leave_req['status']
+        new_status = current_status
+        
+        if action == 'Rejected':
+            new_status = 'Rejected'
+        else:
+            # Multi-level approval logic
+            if user_role == 'Manager':
+                if current_status != 'Pending':
+                    return jsonify({"error": "Manager can only approve Pending requests"}), 403
+                new_status = 'Manager Approved'
+            elif user_role == 'HR':
+                if current_status != 'Manager Approved':
+                    return jsonify({"error": "HR can only approve Manager Approved requests"}), 403
+                new_status = 'HR Approved'
+            elif user_role == 'Admin':
+                if current_status != 'HR Approved':
+                    return jsonify({"error": "Admin can only approve HR Approved requests"}), 403
+                new_status = 'Approved'
+            else:
+                return jsonify({"error": "Unauthorized role"}), 403
+
+        # 2. Update Database
         cursor.execute(
             "UPDATE leave_requests SET status=%s WHERE request_id=%s AND org_domain=%s", 
-            (status, req_id, domain)
+            (new_status, req_id, domain)
         )
         conn.commit()
-        return jsonify({"message": f"Leave {status}"}), 200
+
+        # 3. Log to Blockchain if final approval or rejection
+        if new_status in ['Approved', 'Rejected']:
+            from blockchain.audit_chain import audit_chain
+            audit_chain.add_block(data={
+                "action": f"LEAVE_{new_status.upper()}",
+                "request_id": req_id,
+                "employee_id": leave_req['employee_id'],
+                "org_domain": domain
+            })
+
+        return jsonify({"message": f"Leave status updated to {new_status}"}), 200
     finally:
         conn.close()
 
 @leaves_bp.route('/balance/<int:emp_id>', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin', 'Employee'])
 def get_leave_balance(emp_id):
     domain = get_request_domain()
     if not domain:
         return jsonify({"error": "Organization domain required"}), 400
         
+    claims = get_jwt()
+    if claims.get('role') == 'Employee' and claims.get('employee_id') != emp_id:
+        return jsonify({"error": "Unauthorized"}), 403
+
     conn = get_db_connection()
     try:
         cursor = conn.cursor(dictionary=True)
@@ -123,6 +186,7 @@ def get_leave_balance(emp_id):
         conn.close()
 
 @leaves_bp.route('/analytics', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin'])
 def get_leave_analytics():
     domain = get_request_domain()
     if not domain:

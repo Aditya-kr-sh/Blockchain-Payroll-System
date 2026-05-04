@@ -56,7 +56,7 @@ def get_dashboard_stats():
         cursor.execute("SELECT department, COUNT(*) as count FROM employees WHERE status='Active' AND org_domain = %s GROUP BY department", (domain,))
         departments = cursor.fetchall()
 
-        cursor.execute("SELECT COUNT(*) as pending_leaves FROM leave_requests WHERE status='Pending' AND org_domain = %s", (domain,))
+        cursor.execute("SELECT COUNT(*) as pending_leaves FROM leave_requests WHERE status IN ('Pending', 'Manager Approved', 'HR Approved') AND org_domain = %s", (domain,))
         pending_leaves = cursor.fetchone()['pending_leaves']
 
         return jsonify({
@@ -189,7 +189,7 @@ def download_org_report():
         expense = float(cursor.fetchone()['total_expense'] or 0)
         cursor.execute("SELECT department, COUNT(*) as count FROM employees WHERE status='Active' AND org_domain = %s GROUP BY department", (domain,))
         departments = cursor.fetchall()
-        cursor.execute("SELECT COUNT(*) as pending_leaves FROM leave_requests WHERE status='Pending' AND org_domain = %s", (domain,))
+        cursor.execute("SELECT COUNT(*) as pending_leaves FROM leave_requests WHERE status IN ('Pending', 'Manager Approved', 'HR Approved') AND org_domain = %s", (domain,))
         pending_leaves = cursor.fetchone()['pending_leaves']
         cursor.execute("SELECT COUNT(*) as total_payrolls FROM payroll WHERE month_year = DATE_FORMAT(CURRENT_DATE, '%Y-%m') AND org_domain = %s", (domain,))
         total_payrolls = cursor.fetchone()['total_payrolls']

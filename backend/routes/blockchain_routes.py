@@ -18,9 +18,14 @@ def get_chain():
         pass
         
     chain = []
-    # Filter only blocks that belong to the requester's organization
+    # Filter blocks: include the global Genesis Block + organization specific blocks
     for block in audit_chain.chain:
-        if isinstance(block, dict) and block.get('org_domain') == domain:
+        if not isinstance(block, dict): continue
+        
+        is_genesis = block.get('block_index') == 0
+        is_org_block = block.get('org_domain') == domain
+        
+        if is_genesis or is_org_block:
             b = dict(block)
             if isinstance(b.get('data'), str):
                 try:

@@ -24,15 +24,23 @@ def unified_login():
         user = cursor.fetchone()
 
         if user and bcrypt.check_password_hash(user['password'], password):
+            # If it's an employee, we need to find their actual employee_id from the employees table
+            real_id = user['id']
+            if user['role'] == 'Employee':
+                cursor.execute("SELECT employee_id FROM employees WHERE email = %s", (user['email'],))
+                emp_data = cursor.fetchone()
+                if emp_data:
+                    real_id = emp_data['employee_id']
+
             access_token = create_access_token(
                 identity=user['email'],
-                additional_claims={"role": user['role'], "org_domain": user['org_domain'], "user_id": user['id']}
+                additional_claims={"role": user['role'], "org_domain": user['org_domain'], "user_id": user['id'], "employee_id": real_id}
             )
             return jsonify({
                 "message": "Login successful",
                 "access_token": access_token,
                 "user": {
-                    "id": user['id'],
+                    "id": real_id, # Use real_id for employee-dashboard
                     "email": user['email'],
                     "role": user['role'],
                     "org_domain": user['org_domain']

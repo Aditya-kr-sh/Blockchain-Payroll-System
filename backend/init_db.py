@@ -28,8 +28,6 @@ def initialize_database():
         with open(schema_path, 'r') as f:
             schema_sql = f.read()
             
-        # Split by semicolon to execute multiple statements
-        # Note: This is a simple split, might need more care for complex SQL
         statements = schema_sql.split(';')
         
         for statement in statements:

@@ -1,95 +1,52 @@
-# Adaptive Payroll System with Blockchain Audit
+# 🚀 AdaptivePay: Modern Payroll & Workforce Management
 
-A modern, production-ready Payroll Management System featuring a React-based frontend, a Flask-based backend, and a Blockchain-powered audit trail for financial integrity.
+AdaptivePay is a state-of-the-art, full-stack payroll SaaS platform designed for the modern enterprise. It combines seamless workforce orchestration with a **cryptographic blockchain audit trail**, ensuring every financial operation is transparent, immutable, and secure.
 
----
+![Dashboard Preview](https://via.placeholder.com/1200x600?text=AdaptivePay+Enterprise+Dashboard)
+
+## ✨ Key Features
+
+- **🛡️ Blockchain Audit Log**: Every payroll generation, leave approval, and employee update is hashed and stored in a secure blockchain ledger.
+- **📈 Advanced Analytics**: Real-time insights into workforce growth, department distribution, and monthly payout trends.
+- **🌴 Hierarchical Leave Management**: Multi-level approval flow (Manager -> HR -> Admin) with an interactive timeline.
+- **💰 Automated Payroll**: Intelligent tax slab calculations (Standard/Old/New regimes) and automated net salary processing.
+- **📱 Responsive Design**: Fully optimized for mobile and desktop, featuring a "glassmorphism" UI with dark mode support.
+- **🔒 Secure Auth**: Role-based access control (RBAC) with JWT encryption.
+
+## 🛠️ Tech Stack
+
+- **Frontend**: React 18, Vite, Tailwind CSS, HeroIcons, Chart.js.
+- **Backend**: Python (Flask), Flask-JWT-Extended, Flask-Bcrypt.
+- **Database**: MySQL with Connection Pooling.
+- **Blockchain**: SHA-256 Hashing Algorithm with a linked-block architecture.
 
 ## 🚀 Quick Start
 
-### 1. Database Setup (MySQL)
-The system uses MySQL for data persistence.
-1.  Ensure you have a MySQL server running locally.
-2.  Navigate to the `backend` directory and configure your credentials in the `.env` file:
-    ```env
-    DB_HOST=localhost
-    DB_USER=root
-    DB_PASSWORD=your_password
-    DB_NAME=adaptive_payroll
-    ```
-3.  Run the initialization script to create the database and tables:
-    ```bash
-    python init_db.py
-    ```
-    *This will create the `adaptive_payroll` database and all required tables with initial sample data using `database/schema.sql`.*
+### 1. Prerequisites
+- Python 3.9+
+- Node.js 16+
+- MySQL Server
 
-### 2. Backend Setup (Flask)
-1.  Navigate to the `backend` directory:
-    ```bash
-    cd backend
-    ```
-2.  Create a virtual environment:
-    ```bash
-    python -m venv venv
-    ```
-3.  Activate the virtual environment:
-    - **Windows:** `venv\Scripts\activate`
-    - **macOS/Linux:** `source venv/bin/activate`
-4.  Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-5.  Run the backend:
-    ```bash
-    python app.py
-    ```
-    *The API will be available at [http://localhost:5000](http://localhost:5000)*
-
-### 3. Frontend Setup (React/Vite)
-1.  Navigate to the `frontend` directory:
-    ```bash
-    cd frontend
-    ```
-2.  Install dependencies:
-    ```bash
-    npm install
-    ```
-3.  Run the development server:
-    ```bash
-    npm run dev
-    ```
-    *The frontend will be available at [http://localhost:5173](http://localhost:5173)*
-
----
-
-## 🛠️ Project Structure
-
-```text
-├── backend/                # Flask Application
-│   ├── blockchain/         # Blockchain Audit Logic
-│   ├── models/             # Database Models & Connection
-│   ├── routes/             # API Endpoints
-│   ├── services/           # Business Logic (Payroll, Payslips)
-│   └── app.py              # Application Entry Point
-├── frontend/               # React Application (Vite/Tailwind)
-│   ├── src/
-│   │   ├── components/     # Reusable UI Components
-│   │   ├── pages/          # Application Pages
-│   │   └── services/       # API Service Integrations
-│   └── package.json
-└── database/
-    └── schema.sql          # MySQL Schema & Sample Data
+### 2. Backend Setup
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+# Copy .env.example to .env and fill in your DB credentials
+python init_db.py
+python app.py
 ```
 
--   **Employee Management**: Detailed profiles with Indian regional context (Names, Schools, Districts) and status tracking.
--   **Automated Payroll**: Calculates gross/net pay, taxes (using progressive Indian tax slabs), bonuses, and deductions.
--   **Blockchain Audit**: Every sensitive operation is stored as an immutable block in a custom audit chain.
--   **Pro Premium UI**: Fully responsive design with **Enhanced Dark Mode** support and dynamic theme switching.
--   **Payslip Generation**: Regionalized PDF payslips with INR formatting generated natively.
--   **Attendance & Leaves**: Integrated leave request and attendance tracking system with monthly analytics.
--   **Compliance Dashboard**: Real-time ISO 27001 compliance checking and blockchain integrity verification.
--   **Modern Tech Stack**: React, Tailwind CSS, Flask, MySQL, and Chart.js.
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 🔒 Security & Privacy
+AdaptivePay is built with security as a first-class citizen. It uses **Industry-Standard Bcrypt** for password hashing and **JWT (JSON Web Tokens)** for stateless session management. The blockchain implementation ensures that no payroll record can be altered after it has been finalized.
 
 ---
-
-## 🔐 Audit Integrity
-The system implements a private blockchain for financial transparency. Each payroll record is hashed and linked to the previous record, ensuring that any unauthorized tampering with past payroll data is immediately detectable.
+Built with ❤️ for Modern Enterprises.

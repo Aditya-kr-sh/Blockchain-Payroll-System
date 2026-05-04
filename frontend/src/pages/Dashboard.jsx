@@ -134,10 +134,10 @@ const Dashboard = () => {
           <p className="page-subtitle">Real-time highlights of your organization's payroll and workforce.</p>
         </div>
         <div className="flex items-center gap-3">
-          {/* <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border border-emerald-100 dark:border-emerald-800/50">
+          <div className="bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 border border-emerald-100 dark:border-emerald-800/50">
             <ShieldCheckIcon className="w-5 h-5" />
-            Blockchain Active
-          </div> */}
+            Blockchain Verified
+          </div>
           <button 
             onClick={handleGenerateReport}
             className="btn-primary flex items-center gap-2 text-sm px-4 py-2.5"

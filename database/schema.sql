@@ -50,7 +50,7 @@ CREATE TABLE leave_requests (
     start_date DATE,
     end_date DATE,
     reason VARCHAR(255),
-    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    status ENUM('Pending', 'Manager Approved', 'HR Approved', 'Approved', 'Rejected') DEFAULT 'Pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (employee_id) REFERENCES employees(employee_id),
     FOREIGN KEY (leave_type_id) REFERENCES leave_types(leave_type_id)
@@ -158,8 +158,8 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (email, password, role, org_domain) VALUES 
-('admin@adaptivepay.com', '$2b$12$k2Q5.g.VZZ1Xo0M/.w641eG55W/K1rZgH1gR8/B4i4S6fI5/C7rV6', 'Admin', 'adaptivepay.com'), -- admin123
-('priya.singh@adaptivepay.com', '$2b$12$k2Q5.g.VZZ1Xo0M/.w641eG55W/K1rZgH1gR8/B4i4S6fI5/C7rV6', 'HR', 'adaptivepay.com'), -- admin123
-('manager@adaptivepay.com', '$2b$12$k2Q5.g.VZZ1Xo0M/.w641eG55W/K1rZgH1gR8/B4i4S6fI5/C7rV6', 'Manager', 'adaptivepay.com'), -- admin123
-('vivaan.patel@adaptivepay.com', '$2b$12$k2Q5.g.VZZ1Xo0M/.w641eG55W/K1rZgH1gR8/B4i4S6fI5/C7rV6', 'Employee', 'adaptivepay.com'); -- admin123
+('admin@adaptivepay.com', '$2b$12$7NfZnd4GV4uQUILEHvlTHuJw19N/RvfRMnDXKz4vlbyq94M0OQqEO', 'Admin', 'adaptivepay.com'), -- admin123
+('priya.singh@adaptivepay.com', '$2b$12$7NfZnd4GV4uQUILEHvlTHuJw19N/RvfRMnDXKz4vlbyq94M0OQqEO', 'HR', 'adaptivepay.com'), -- admin123
+('manager@adaptivepay.com', '$2b$12$7NfZnd4GV4uQUILEHvlTHuJw19N/RvfRMnDXKz4vlbyq94M0OQqEO', 'Manager', 'adaptivepay.com'), -- admin123
+('vivaan.patel@adaptivepay.com', '$2b$12$7NfZnd4GV4uQUILEHvlTHuJw19N/RvfRMnDXKz4vlbyq94M0OQqEO', 'Employee', 'adaptivepay.com'); -- admin123
 

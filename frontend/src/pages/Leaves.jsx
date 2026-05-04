@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { DocumentTextIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-const statusColors = { Pending: 'badge-yellow', Approved: 'badge-green', Rejected: 'badge-red' };
+const statusColors = { 
+  Pending: 'badge-yellow', 
+  'Manager Approved': 'badge-blue', 
+  'HR Approved': 'badge-indigo', 
+  Approved: 'badge-green', 
+  Rejected: 'badge-red' 
+};
 const leaveColors = ['badge-blue', 'badge-purple', 'badge-green', 'badge-gray'];
 
 const Leaves = () => {
@@ -41,9 +47,26 @@ const Leaves = () => {
   };
 
   const handleStatusChange = async (reqId, status) => {
-    await api.put(`/leaves/${reqId}/status`, { status });
-    showMsg(`Leave ${status} successfully`);
-    fetchAll();
+    try {
+      await api.put(`/leaves/${reqId}/status`, { status });
+      showMsg(`Leave status updated successfully`);
+      fetchAll();
+    } catch (error) {
+      showMsg(error.response?.data?.error || 'Hierarchy validation error', true);
+    }
+  };
+
+  const userRole = localStorage.getItem('userRole') || '';
+  const canApprove = (status) => {
+    if (userRole === 'Manager' && status === 'Pending') return true;
+    if (userRole === 'HR' && status === 'Manager Approved') return true;
+    if (userRole === 'Admin' && status === 'HR Approved') return true;
+    return false;
+  };
+
+  const canReject = (status) => {
+    return ['Pending', 'Manager Approved', 'HR Approved'].includes(status) && 
+           ['Manager', 'HR', 'Admin'].includes(userRole);
   };
 
   const handleSubmit = async (e) => {
@@ -55,9 +78,9 @@ const Leaves = () => {
     setForm({ employee_id: '', leave_type_id: '', start_date: '', end_date: '', reason: '' });
   };
 
-  const showMsg = (msg) => {
-    setMessage(msg);
-    setTimeout(() => setMessage(''), 3000);
+  const showMsg = (msg, isError = false) => {
+    setMessage({ text: msg, isError });
+    setTimeout(() => setMessage(null), 3000);
   };
 
   const pending = requests.filter(r => r.status === 'Pending').length;
@@ -93,8 +116,8 @@ const Leaves = () => {
       </div>
 
       {message && (
-        <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm font-medium">
-          {message}
+        <div className={`${message.isError ? 'bg-red-50 border-red-200 text-red-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700'} border px-4 py-3 rounded-xl text-sm font-medium`}>
+          {message.text}
         </div>
       )}
 
@@ -124,7 +147,7 @@ const Leaves = () => {
               <option value="Rejected">Rejected</option>
             </select>
           </div>
-          <div className="overflow-x-auto">
+          <div className="mobile-table-wrapper">
             <table className="data-table">
               <thead>
                 <tr><th>ID</th><th>Employee</th><th>Leave Type</th><th>Period</th><th>Days</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
@@ -154,18 +177,20 @@ const Leaves = () => {
                       <td className="text-gray-500 text-xs max-w-xs truncate">{r.reason || '—'}</td>
                       <td><span className={`badge ${statusColors[r.status]}`}>{r.status}</span></td>
                       <td>
-                        {r.status === 'Pending' && (
-                          <div className="flex gap-1">
+                        <div className="flex gap-1">
+                          {canApprove(r.status) && (
                             <button onClick={() => handleStatusChange(r.request_id, 'Approved')}
                               className="p-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-700 transition-colors" title="Approve">
                               <CheckIcon className="w-4 h-4" />
                             </button>
+                          )}
+                          {canReject(r.status) && (
                             <button onClick={() => handleStatusChange(r.request_id, 'Rejected')}
                               className="p-1.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 transition-colors" title="Reject">
                               <XMarkIcon className="w-4 h-4" />
                             </button>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );

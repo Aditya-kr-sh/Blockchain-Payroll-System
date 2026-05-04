@@ -2,29 +2,35 @@ from models.db import get_db_connection
 
 from models.db import get_db_connection
 
-def get_tax_deduction(annual_salary, domain):
+def get_tax_deduction(annual_salary, domain, cursor=None):
+    if cursor:
+        return _calculate_tax(cursor, annual_salary, domain)
+        
     conn = get_db_connection()
     try:
         cursor = conn.cursor(dictionary=True)
-        # Use domain-specific tax slabs
-        cursor.execute("SELECT * FROM tax_slabs WHERE org_domain = %s ORDER BY min_salary ASC", (domain,))
-        slabs = cursor.fetchall()
-        
-        # Fallback to default if no custom slabs for domain
-        if not slabs:
-            cursor.execute("SELECT * FROM tax_slabs WHERE org_domain = 'adaptivepay.com' ORDER BY min_salary ASC")
-            slabs = cursor.fetchall()
-            
-        tax = 0
-        for slab in slabs:
-            if annual_salary > float(slab['min_salary']):
-                max_sal = float(slab['max_salary']) if slab['max_salary'] is not None else float('inf')
-                taxable_amount = min(annual_salary, max_sal) - float(slab['min_salary'])
-                tax += (taxable_amount * float(slab['tax_rate'])) / 100
-        
-        return tax / 12
+        return _calculate_tax(cursor, annual_salary, domain)
     finally:
         conn.close()
+
+def _calculate_tax(cursor, annual_salary, domain):
+    # Use domain-specific tax slabs
+    cursor.execute("SELECT * FROM tax_slabs WHERE org_domain = %s ORDER BY min_salary ASC", (domain,))
+    slabs = cursor.fetchall()
+    
+    # Fallback to default if no custom slabs for domain
+    if not slabs:
+        cursor.execute("SELECT * FROM tax_slabs WHERE org_domain = 'adaptivepay.com' ORDER BY min_salary ASC")
+        slabs = cursor.fetchall()
+        
+    tax = 0
+    for slab in slabs:
+        if annual_salary > float(slab['min_salary']):
+            max_sal = float(slab['max_salary']) if slab['max_salary'] is not None else float('inf')
+            taxable_amount = min(annual_salary, max_sal) - float(slab['min_salary'])
+            tax += (taxable_amount * float(slab['tax_rate'])) / 100
+    
+    return tax / 12
 
 def generate_payroll(employee_id, month, domain, overtime=0, bonus=0):
     conn = get_db_connection()
@@ -80,7 +86,7 @@ def generate_payroll(employee_id, month, domain, overtime=0, bonus=0):
         
         # Tax Calculation
         projected_annual = base_salary * 12
-        monthly_tax = get_tax_deduction(projected_annual, domain)
+        monthly_tax = get_tax_deduction(projected_annual, domain, cursor=cursor)
         
         net_salary = (base_salary + overtime + bonus) - (leave_deduction + monthly_tax)
         

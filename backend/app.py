@@ -12,6 +12,7 @@ import os
 
 app = Flask(__name__)
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'adaptive-payroll-super-secret-key')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 86400 # 24 hours in seconds
 bcrypt.init_app(app)
 jwt.init_app(app)
 CORS(app, resources={r"/api/*": {"origins": "*"}})

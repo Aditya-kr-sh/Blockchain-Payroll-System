@@ -1,12 +1,14 @@
 from flask import Blueprint, request, jsonify
 from models.db import get_db_connection
 from blockchain.audit_chain import audit_chain
-from utils.auth_utils import get_request_domain
+from utils.auth_utils import get_request_domain, role_required
+from flask_jwt_extended import get_jwt
 import mysql.connector
 
 employee_bp = Blueprint('employee_bp', __name__)
 
-@employee_bp.route('/', methods=['GET'])
+@employee_bp.route('', methods=['GET'], strict_slashes=False)
+@role_required(['Manager', 'HR', 'Admin'])
 def get_employees():
     domain = get_request_domain()
     if not domain:
@@ -40,6 +42,7 @@ def get_employees():
             conn.close()
 
 @employee_bp.route('/departments', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin'])
 def get_departments():
     domain = get_request_domain()
     if not domain:
@@ -62,6 +65,7 @@ def get_departments():
             conn.close()
 
 @employee_bp.route('/<int:emp_id>', methods=['GET'])
+@role_required(['Manager', 'HR', 'Admin', 'Employee'])
 def get_employee(emp_id):
     domain = get_request_domain()
     if not domain:
@@ -75,6 +79,12 @@ def get_employee(emp_id):
         emp = cursor.fetchone()
         if not emp:
             return jsonify({"error": "Employee not found in your organization"}), 404
+            
+        # Security: Employees can only view their own profile
+        claims = get_jwt()
+        if claims.get('role') == 'Employee' and claims.get('employee_id') != emp_id:
+            return jsonify({"error": "Unauthorized: You can only view your own profile"}), 403
+
         return jsonify(emp), 200
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
@@ -82,7 +92,8 @@ def get_employee(emp_id):
         if conn:
             conn.close()
 
-@employee_bp.route('/', methods=['POST'])
+@employee_bp.route('', methods=['POST'], strict_slashes=False)
+@role_required(['HR', 'Admin'])
 def add_employee():
     domain = get_request_domain()
     if not domain:
@@ -102,6 +113,19 @@ def add_employee():
         conn.commit()
         emp_id = cursor.lastrowid
         
+        # Automatically create a user account for the employee
+        # Password: FirstName + EmployeeID (e.g., Vivaan2)
+        first_name = data['name'].split(' ')[0]
+        default_password = f"{first_name}{emp_id}"
+        from extensions import bcrypt
+        hashed_pwd = bcrypt.generate_password_hash(default_password).decode('utf-8')
+        
+        cursor.execute(
+            "INSERT INTO users (email, password, role, org_domain) VALUES (%s, %s, %s, %s)",
+            (data['email'], hashed_pwd, 'Employee', domain)
+        )
+        conn.commit()
+        
         # Log to blockchain
         audit_chain.add_block(data={
             "action": "EMPLOYEE_ADDED",
@@ -110,7 +134,14 @@ def add_employee():
             "name": data['name']
         })
         
-        return jsonify({"message": "Employee added successfully", "employee_id": emp_id}), 201
+        return jsonify({
+            "message": "Employee added and user account created successfully", 
+            "employee_id": emp_id,
+            "credentials": {
+                "email": data['email'],
+                "temp_password": default_password
+            }
+        }), 201
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
     finally:
@@ -118,6 +149,7 @@ def add_employee():
             conn.close()
 
 @employee_bp.route('/<int:emp_id>', methods=['PUT'])
+@role_required(['HR', 'Admin'])
 def update_employee(emp_id):
     domain = get_request_domain()
     if not domain:
@@ -153,6 +185,7 @@ def update_employee(emp_id):
             conn.close()
 
 @employee_bp.route('/<int:emp_id>', methods=['DELETE'])
+@role_required(['Admin'])
 def delete_employee(emp_id):
     domain = get_request_domain()
     if not domain:
